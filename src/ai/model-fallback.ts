@@ -39,6 +39,19 @@ export function statusOf(error: unknown): number | undefined {
 const defaultSleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+type Decision = 'next-model' | 'retry' | 'fail';
+
+/**
+ * Decides what to do after a failed attempt: 429 moves on, 500/503 retry once, the rest fail.
+ * @param status - HTTP status of the failure, if known
+ * @param attempt - zero-based attempt number on the current model
+ */
+function decide(status: number | undefined, attempt: number): Decision {
+  if (status === 429) return 'next-model';
+  if (status === 500 || status === 503) return attempt === 0 ? 'retry' : 'next-model';
+  return 'fail';
+}
+
 /**
  * Runs a model call down the chain: 429 moves straight to the next model, 500/503 retries
  * once after a short wait and then moves on, anything else fails immediately.
@@ -61,18 +74,14 @@ export async function runWithFallback<T>(
         options.onModel?.(model);
         return { value, model };
       } catch (error) {
-        const status = statusOf(error);
-        if (status === 429) break;
-        if (status === 500 || status === 503) {
-          if (attempt === 0) {
-            await sleep(RETRY_DELAY_MS);
-            continue;
-          }
-          break;
+        const decision = decide(statusOf(error), attempt);
+        if (decision === 'fail') {
+          throw new AiRequestError('The request could not be completed. Please try again.', {
+            cause: error,
+          });
         }
-        throw new AiRequestError('The request could not be completed. Please try again.', {
-          cause: error,
-        });
+        if (decision === 'next-model') break;
+        await sleep(RETRY_DELAY_MS);
       }
     }
   }

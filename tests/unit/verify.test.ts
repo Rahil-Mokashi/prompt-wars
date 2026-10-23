@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeExtraction } from './fixtures';
 
-type Params = { model: string; tools?: unknown };
+interface Params {
+  model: string;
+  tools?: unknown;
+}
 type Handler = (params: Params) => Promise<unknown>;
 
 let handler: Handler;

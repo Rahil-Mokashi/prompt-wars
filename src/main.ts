@@ -12,53 +12,99 @@ import { clearBusy, renderResult, renderSkeleton } from './ui/render';
 import { prepareFile } from './utils/image';
 import { validateInput } from './utils/validate';
 
-const byId = <T extends HTMLElement>(id: string): T => {
+/**
+ * Finds a required element and checks its type, so later code needs no casts.
+ * @param id - element id
+ * @param type - expected element constructor
+ * @throws Error when the element is missing or of another type
+ */
+function byId<T extends HTMLElement>(id: string, type: new () => T): T {
   const node = document.getElementById(id);
-  if (!node) throw new Error(`Missing element #${id}`);
-  return node as T;
-};
+  if (!(node instanceof type)) throw new Error(`Missing element #${id}`);
+  return node;
+}
 
-const form = byId<HTMLFormElement>('input-form');
-const textInput = byId<HTMLTextAreaElement>('text-input');
-const fileInput = byId<HTMLInputElement>('file-input');
-const analyseBtn = byId<HTMLButtonElement>('analyse-btn');
-const sampleBtn = byId<HTMLButtonElement>('sample-btn');
-const statusRegion = byId('status');
-const errorRegion = byId('error');
-const results = byId('results');
-const smsAnchor = byId<HTMLAnchorElement>('sms-link');
-const trustBtn = byId<HTMLButtonElement>('trust-btn');
-const trustStatus = byId('trust-status');
+const form = byId('input-form', HTMLFormElement);
+const textInput = byId('text-input', HTMLTextAreaElement);
+const fileInput = byId('file-input', HTMLInputElement);
+const analyseBtn = byId('analyse-btn', HTMLButtonElement);
+const sampleBtn = byId('sample-btn', HTMLButtonElement);
+const statusRegion = byId('status', HTMLElement);
+const errorRegion = byId('error', HTMLElement);
+const results = byId('results', HTMLElement);
+const smsAnchor = byId('sms-link', HTMLAnchorElement);
+const trustBtn = byId('trust-btn', HTMLButtonElement);
+const trustStatus = byId('trust-status', HTMLElement);
 
-const cache = new Map<string, { result: VerifiedResult; model: string }>();
+interface CachedAnalysis {
+  result: VerifiedResult;
+  model: string;
+}
+
+const cache = new Map<string, CachedAnalysis>();
 let busy = false;
+let alertMessage = SMS_DEFAULT_MESSAGE;
 
+/**
+ * Enables or disables the controls while a request is in flight.
+ * @param value - true while analysing
+ */
 function setBusy(value: boolean): void {
   busy = value;
   analyseBtn.disabled = value;
   sampleBtn.disabled = value;
 }
 
+/**
+ * Shows an error and clears any previous results.
+ * @param message - user-facing message
+ */
 function showError(message: string): void {
   errorRegion.textContent = message;
   results.replaceChildren();
   clearBusy(results);
 }
 
-function copyText(text: string): void {
-  navigator.clipboard
-    .writeText(text)
-    .then(() => announce(statusRegion, STRINGS.copied))
-    .catch(() => announce(statusRegion, STRINGS.copyFailed));
+/**
+ * Copies text to the clipboard.
+ * @param text - text to copy
+ * @returns true when the copy succeeded
+ */
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
+/**
+ * Copies a card's text and announces the outcome.
+ * @param text - text to copy
+ */
+function copyText(text: string): void {
+  void copyToClipboard(text).then((ok) => {
+    announce(statusRegion, ok ? STRINGS.copied : STRINGS.copyFailed);
+  });
+}
+
+/**
+ * Reads text aloud when the browser supports speech synthesis.
+ * @param text - text to speak
+ */
 function speak(text: string): void {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
 }
 
-function remember(key: string, value: { result: VerifiedResult; model: string }): void {
+/**
+ * Stores a result in the small in-memory cache, evicting the oldest entry when full.
+ * @param key - trimmed input text
+ * @param value - result and the model that produced it
+ */
+function remember(key: string, value: CachedAnalysis): void {
   if (cache.size >= CACHE_MAX_ENTRIES) {
     const oldest = cache.keys().next().value;
     if (oldest !== undefined) cache.delete(oldest);
@@ -66,32 +112,40 @@ function remember(key: string, value: { result: VerifiedResult; model: string })
   cache.set(key, value);
 }
 
-let alertMessage = SMS_DEFAULT_MESSAGE;
-
+/**
+ * Updates the always-visible "Text 112" link and the share text.
+ * @param message - short emergency message
+ */
 function setAlertMessage(message: string): void {
   alertMessage = message;
   smsAnchor.href = smsLink(EMERGENCY_NUMBER, message);
 }
 
-setAlertMessage(SMS_DEFAULT_MESSAGE);
+/** Copies the alert text and shows a visible confirmation under the buttons. */
+async function copyAlert(): Promise<void> {
+  const ok = await copyToClipboard(alertMessage);
+  trustStatus.textContent = ok ? STRINGS.alertCopied : STRINGS.copyFailed;
+}
 
-trustBtn.addEventListener('click', () => {
-  const copyInstead = (): void => {
-    navigator.clipboard
-      .writeText(alertMessage)
-      .then(() => {
-        trustStatus.textContent = 'Copied. Paste it in a message to someone you trust.';
-      })
-      .catch(() => {
-        trustStatus.textContent = STRINGS.copyFailed;
-      });
-  };
-  if (typeof navigator.share !== 'function') return copyInstead();
+/** Shares the alert text with the share sheet, falling back to copying it. */
+function alertSomeone(): void {
+  if (!('share' in navigator)) {
+    void copyAlert();
+    return;
+  }
   navigator.share({ text: alertMessage }).catch((error: unknown) => {
-    if (!(error instanceof DOMException && error.name === 'AbortError')) copyInstead();
+    const cancelled = error instanceof DOMException && error.name === 'AbortError';
+    if (!cancelled) void copyAlert();
   });
-});
+}
 
+/**
+ * Renders a finished analysis and moves focus to it.
+ * @param result - verified result
+ * @param model - model that answered
+ * @param extractMs - Extract latency
+ * @param verifyMs - Verify latency
+ */
 function show(result: VerifiedResult, model: string, extractMs: number, verifyMs: number): void {
   clearBusy(results);
   setAlertMessage(buildSmsMessage(result.extraction));
@@ -100,29 +154,73 @@ function show(result: VerifiedResult, model: string, extractMs: number, verifyMs
     result,
     buildActionCards(result),
     { model, extractMs, verifyMs },
-    {
-      copy: copyText,
-      speak,
-    },
+    { copy: copyText, speak },
   );
   announce(statusRegion, STRINGS.done);
   focusResults(results);
 }
 
-/** Runs Input -> Extract -> Verify -> Act for the current form contents. */
-async function analyse(): Promise<void> {
-  if (busy) return;
+/**
+ * Validates the form contents.
+ * @returns the text and files, or an error message
+ */
+function readInput(): { text: string; files: File[]; error: string | null } {
   const files = Array.from(fileInput.files ?? []);
   const text = textInput.value;
   const check = validateInput({
     text,
     files: files.map((f) => ({ name: f.name, type: f.type, size: f.size })),
   });
-  errorRegion.textContent = '';
-  if (!check.ok) {
-    errorRegion.textContent = check.error;
-    return;
+  return { text, files, error: check.ok ? null : check.error };
+}
+
+/**
+ * Runs Extract then Verify, timing each call.
+ * @param text - user text
+ * @param files - validated files
+ */
+async function runPipeline(text: string, files: File[]) {
+  const prepared = await Promise.all(files.map(prepareFile));
+  const t0 = performance.now();
+  const extracted = await extract({ text, files: prepared });
+  const t1 = performance.now();
+  const result = await verify(extracted.extraction);
+  const t2 = performance.now();
+  return { extracted, result, extractMs: t1 - t0, verifyMs: t2 - t1 };
+}
+
+/**
+ * Logs per-call latency in development only.
+ * @param extractMs - Extract latency
+ * @param verifyMs - Verify latency
+ */
+function logLatency(extractMs: number, verifyMs: number): void {
+  if (!import.meta.env.DEV) return;
+  console.info(`[latency] extract ${Math.round(extractMs)} ms, verify ${Math.round(verifyMs)} ms`);
+}
+
+/**
+ * Runs the pipeline on fresh input, caches text-only results and renders them.
+ * @param text - user text
+ * @param files - validated files
+ * @param cacheKey - cache key for text-only input, else null
+ */
+async function analyseFresh(text: string, files: File[], cacheKey: string | null): Promise<void> {
+  const { extracted, result, extractMs, verifyMs } = await runPipeline(text, files);
+  logLatency(extractMs, verifyMs);
+  if (cacheKey && !extracted.usedSafeFallback) {
+    remember(cacheKey, { result, model: extracted.model });
   }
+  show(result, extracted.model, extractMs, verifyMs);
+  if (extracted.usedSafeFallback) errorRegion.textContent = STRINGS.safeFallback;
+}
+
+/** Runs Input -> Extract -> Verify -> Act for the current form contents. */
+async function analyse(): Promise<void> {
+  if (busy) return;
+  const { text, files, error } = readInput();
+  errorRegion.textContent = error ?? '';
+  if (error) return;
 
   const cacheKey = files.length === 0 ? text.trim() : null;
   const cached = cacheKey ? cache.get(cacheKey) : undefined;
@@ -135,29 +233,16 @@ async function analyse(): Promise<void> {
   renderSkeleton(results);
   announce(statusRegion, STRINGS.analysing);
   try {
-    const prepared = await Promise.all(files.map(prepareFile));
-    const t0 = performance.now();
-    const extracted = await extract({ text, files: prepared });
-    const t1 = performance.now();
-    const result = await verify(extracted.extraction);
-    const t2 = performance.now();
-    const extractMs = t1 - t0;
-    const verifyMs = t2 - t1;
-    if (import.meta.env.DEV) {
-      console.info(
-        `[latency] extract ${Math.round(extractMs)} ms, verify ${Math.round(verifyMs)} ms`,
-      );
-    }
-    if (cacheKey && !extracted.usedSafeFallback)
-      remember(cacheKey, { result, model: extracted.model });
-    show(result, extracted.model, extractMs, verifyMs);
-    if (extracted.usedSafeFallback) errorRegion.textContent = STRINGS.safeFallback;
-  } catch (error) {
-    showError(error instanceof AllModelsFailedError ? STRINGS.busy : STRINGS.failed);
+    await analyseFresh(text, files, cacheKey);
+  } catch (caught) {
+    showError(caught instanceof AllModelsFailedError ? STRINGS.busy : STRINGS.failed);
   } finally {
     setBusy(false);
   }
 }
+
+setAlertMessage(SMS_DEFAULT_MESSAGE);
+trustBtn.addEventListener('click', alertSomeone);
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();

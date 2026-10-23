@@ -125,7 +125,7 @@ function parsePatient(value: unknown): Patient | null | undefined {
   ) {
     return undefined;
   }
-  return { age: age as number | null, allergies, medications, conditions };
+  return { age, allergies, medications, conditions };
 }
 
 function parseActions(value: unknown): Action[] | undefined {
@@ -155,6 +155,35 @@ function parseJson(text: string): unknown {
   }
 }
 
+type ScalarFields = Pick<
+  Extraction,
+  | 'pack'
+  | 'situation_summary'
+  | 'severity'
+  | 'confidence'
+  | 'key_facts'
+  | 'location_hint'
+  | 'missing_info'
+>;
+
+const isConfidence = (value: unknown): value is number =>
+  typeof value === 'number' && value >= 0 && value <= 1;
+
+const isNullableString = (value: unknown): value is string | null =>
+  value === null || typeof value === 'string';
+
+function hasValidFields(raw: Json): raw is Json & ScalarFields {
+  return (
+    oneOf(PACK_IDS, raw.pack) &&
+    typeof raw.situation_summary === 'string' &&
+    oneOf(SEVERITIES, raw.severity) &&
+    isConfidence(raw.confidence) &&
+    isStringList(raw.key_facts) &&
+    isNullableString(raw.location_hint) &&
+    isStringList(raw.missing_info)
+  );
+}
+
 /**
  * Validates model text against the extraction contract.
  * @param text - raw model output
@@ -162,35 +191,19 @@ function parseJson(text: string): unknown {
  */
 export function parseExtraction(text: string): Extraction | null {
   const raw = parseJson(text);
-  if (!isObject(raw)) return null;
+  if (!isObject(raw) || !hasValidFields(raw)) return null;
   const patient = parsePatient(raw.patient);
   const actions = parseActions(raw.actions);
-  const { pack, situation_summary, severity, confidence, key_facts, location_hint, missing_info } =
-    raw;
-  if (
-    !oneOf(PACK_IDS, pack) ||
-    typeof situation_summary !== 'string' ||
-    !oneOf(SEVERITIES, severity) ||
-    typeof confidence !== 'number' ||
-    confidence < 0 ||
-    confidence > 1 ||
-    !isStringList(key_facts) ||
-    patient === undefined ||
-    (location_hint !== null && typeof location_hint !== 'string') ||
-    !isStringList(missing_info) ||
-    actions === undefined
-  ) {
-    return null;
-  }
+  if (patient === undefined || actions === undefined) return null;
   return {
-    pack,
-    situation_summary,
-    severity,
-    confidence,
-    key_facts,
+    pack: raw.pack,
+    situation_summary: raw.situation_summary,
+    severity: raw.severity,
+    confidence: raw.confidence,
+    key_facts: raw.key_facts,
     patient,
-    location_hint,
-    missing_info,
+    location_hint: raw.location_hint,
+    missing_info: raw.missing_info,
     actions,
   };
 }

@@ -11,6 +11,7 @@ export const STRINGS = {
   needsCheck: 'Needs human check',
   copy: 'Copy',
   copied: 'Copied to clipboard.',
+  alertCopied: 'Copied. Paste it in a message to someone you trust.',
   copyFailed: 'Could not copy. Select the text and copy it manually.',
   share: 'Share',
   readAloud: 'Read aloud',

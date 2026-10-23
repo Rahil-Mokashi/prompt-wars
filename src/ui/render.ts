@@ -45,44 +45,86 @@ export interface CardHandlers {
   speak: (text: string) => void;
 }
 
+/**
+ * Status line and reasons for a card. Call cards are always valid, so they show none.
+ * @param card - the action card
+ */
+function statusLines(card: ActionCard): HTMLElement[] {
+  if (card.kind === 'call') return [];
+  const statusText = card.status === 'verified' ? STRINGS.verified : STRINGS.needsCheck;
+  const icon = card.status === 'verified' ? '✔ ' : '⚠ ';
+  return [
+    el('p', `${icon}${statusText}`, `status status-${card.status}`),
+    ...card.reasons.map((reason) => el('p', reason, 'meta')),
+  ];
+}
+
+/**
+ * The tel: or external link button of a card, if it has one.
+ * @param card - the action card
+ */
+function linkButton(card: ActionCard): HTMLAnchorElement | null {
+  if (!card.href) return null;
+  const link = el('a', card.kind === 'call' ? STRINGS.call : STRINGS.open, 'btn btn-primary');
+  link.href = card.href;
+  if (card.kind === 'link') {
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+  }
+  link.setAttribute('aria-label', `${link.textContent}: ${card.title}`);
+  return link;
+}
+
+/**
+ * A labelled secondary button for one card action.
+ * @param label - visible text, also used in the accessible name
+ * @param card - the card the button belongs to
+ * @param onClick - click handler
+ */
+function labelledButton(label: string, card: ActionCard, onClick: () => void): HTMLButtonElement {
+  const button = actionButton(label, onClick);
+  button.setAttribute('aria-label', `${label}: ${card.title}`);
+  return button;
+}
+
+/**
+ * The row of tappable controls (call/open, copy, read aloud) for a card.
+ * @param card - the action card
+ * @param handlers - copy and read-aloud callbacks
+ */
+function actionRow(card: ActionCard, handlers: CardHandlers): HTMLElement | null {
+  const copyText = card.copyText;
+  const candidates: (HTMLElement | null)[] = [
+    linkButton(card),
+    copyText ? labelledButton(STRINGS.copy, card, () => handlers.copy(copyText)) : null,
+    card.speakable
+      ? labelledButton(STRINGS.readAloud, card, () =>
+          handlers.speak(`${card.title}. ${card.detail}`),
+        )
+      : null,
+  ];
+  const controls = candidates.filter((control) => control !== null);
+  if (controls.length === 0) return null;
+  const row = el('div', undefined, 'card-actions');
+  row.append(...controls);
+  return row;
+}
+
+/**
+ * Renders one action card as a list item.
+ * @param card - the action card
+ * @param handlers - copy and read-aloud callbacks
+ */
 function renderCard(card: ActionCard, handlers: CardHandlers): HTMLLIElement {
   const item = el('li', undefined, 'card');
-  item.append(el('h3', card.title), el('p', card.detail));
-
-  if (card.kind !== 'call') {
-    const statusText = card.status === 'verified' ? STRINGS.verified : STRINGS.needsCheck;
-    const icon = card.status === 'verified' ? '✔ ' : '⚠ ';
-    item.append(el('p', `${icon}${statusText}`, `status status-${card.status}`));
-    for (const reason of card.reasons) item.append(el('p', reason, 'meta'));
-  }
-  const sources = sourceLinks(card);
-  if (sources) item.append(sources);
-
-  const row = el('div', undefined, 'card-actions');
-  if (card.href) {
-    const link = el('a', card.kind === 'call' ? STRINGS.call : STRINGS.open, 'btn btn-primary');
-    link.href = card.href;
-    if (card.kind === 'link') {
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-    }
-    link.setAttribute('aria-label', `${link.textContent}: ${card.title}`);
-    row.append(link);
-  }
-  const copyText = card.copyText;
-  if (copyText) {
-    const copy = actionButton(STRINGS.copy, () => handlers.copy(copyText));
-    copy.setAttribute('aria-label', `${STRINGS.copy}: ${card.title}`);
-    row.append(copy);
-  }
-  if (card.speakable) {
-    const speak = actionButton(STRINGS.readAloud, () =>
-      handlers.speak(`${card.title}. ${card.detail}`),
-    );
-    speak.setAttribute('aria-label', `${STRINGS.readAloud}: ${card.title}`);
-    row.append(speak);
-  }
-  if (row.childElementCount > 0) item.append(row);
+  const parts = [
+    el('h3', card.title),
+    el('p', card.detail),
+    ...statusLines(card),
+    sourceLinks(card),
+    actionRow(card, handlers),
+  ].filter((part): part is HTMLElement => part !== null);
+  item.append(...parts);
   return item;
 }
 
