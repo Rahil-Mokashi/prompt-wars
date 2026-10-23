@@ -64,3 +64,8 @@ export const BYTES_PER_MB = 1024 * 1024;
 export const MS_PER_SECOND = 1000;
 /** Priority of the Call 112 action the rules add; sorts before model actions. */
 export const CALL_ACTION_PRIORITY = 0;
+
+/** Language tag for read-aloud; the browser picks a matching voice when one is installed. */
+export const SPEECH_LANG = 'en-IN';
+/** Delay between cancelling speech and starting a new utterance; Chrome drops an immediate speak(). */
+export const SPEECH_START_DELAY_MS = 100;

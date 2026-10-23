@@ -8,6 +8,7 @@ import { CACHE_MAX_ENTRIES, EMERGENCY_NUMBER, SMS_DEFAULT_MESSAGE } from './conf
 import type { VerifiedResult } from './domain/types';
 import { announce, focusResults } from './ui/a11y';
 import { SAMPLE_TEXT, STRINGS } from './ui/i18n';
+import { speak } from './ui/speech';
 import { clearBusy, renderResult, renderSkeleton } from './ui/render';
 import { prepareFile } from './utils/image';
 import { validateInput } from './utils/validate';
@@ -90,16 +91,6 @@ function copyText(text: string): void {
 }
 
 /**
- * Reads text aloud when the browser supports speech synthesis.
- * @param text - text to speak
- */
-function speak(text: string): void {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-}
-
-/**
  * Stores a result in the small in-memory cache, evicting the oldest entry when full.
  * @param key - trimmed input text
  * @param value - result and the model that produced it
@@ -154,7 +145,7 @@ function show(result: VerifiedResult, model: string, extractMs: number, verifyMs
     result,
     buildActionCards(result),
     { model, extractMs, verifyMs },
-    { copy: copyText, speak },
+    { copy: copyText, speak: (text) => void speak(text) },
   );
   announce(statusRegion, STRINGS.done);
   focusResults(results);
