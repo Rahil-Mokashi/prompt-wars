@@ -17,6 +17,8 @@ Measures implemented in this repository:
   severity or add safety actions, never lower or remove them.
 - **Security headers** in `firebase.json`: Content-Security-Policy, Permissions-Policy,
   X-Content-Type-Options, Referrer-Policy, X-Frame-Options.
+- **CSP kept minimal:** only the domains the app uses (reCAPTCHA, Firebase AI Logic, App Check, Installations); Analytics and Remote Config domains were removed.
+- **CI hardening:** the workflow has read-only `contents` permission, cancels superseded runs and has 10-minute job timeouts.
 - **Client-side throttle:** one request in flight at a time.
 - **No personal data in logs.**
 

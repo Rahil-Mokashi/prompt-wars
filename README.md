@@ -65,8 +65,9 @@ flowchart LR
 2. **Guidance check** (`src/ai/verify.ts`): first-aid actions are compared with 10 curated rules in
    `src/domain/guidance.ts`, written in our own words, each linked to the official site of WHO, Indian
    Red Cross, NDMA or MoHFW. Verdicts: supported, not_supported, not_covered.
-3. **Grounding** is tried once per session on the first model only. If it is blocked (429/401/403) the app
-   remembers and uses the guidance check. The UI says "Web verified" only if grounding ran; otherwise
+3. **Grounding** is switched off (`GROUNDING_ENABLED = false` in `src/config.ts`) because Google Search
+   grounding is blocked on the free tier. The code path and its tests are kept; when enabled it is tried once
+   per session on the first model only, and a block (429/401/403) is remembered. The UI says "Web verified" only if grounding ran; otherwise
    "Checked against built-in guidance".
 
 Every action shows `Verified` or `Needs human check`, with reasons and sources.
@@ -78,7 +79,7 @@ Every action shows `Verified` or `Needs human check`, with reasons and sources.
   asserts zero violations.
 - **Efficiency:** one extraction call; verification only on first-aid actions; images downscaled to 1600px
   JPEG 0.8; identical text input is cached; the mock code is not in the production bundle.
-- **Testing:** 93 unit tests, 99.13% line coverage (97.70% statements, 92.46% branches) across all of
+- **Testing:** 111 unit tests, 98.22% line coverage (96.88% statements, 91.85% branches) across all of
   `src/` except the browser-only entry points (`main.ts`, `firebase.ts`, `utils/image.ts`, `ai/mock.ts`),
   which the Playwright test exercises. The threshold is 80% lines, enforced in `vite.config.ts`. Gemini is
   mocked, so there is no network in unit tests. No triage-accuracy evaluation has been run, so no accuracy
@@ -95,6 +96,7 @@ Measured, not claimed:
 - Lighthouse (mobile, live URL): Performance 94, Accessibility 100, Best Practices 100, SEO 100.
   FCP 2.5 s, LCP 2.5 s, TBT 0 ms, CLS 0. Details in `docs/lighthouse.md`.
 - Bundle: JS 92.76 kB (30.60 kB gzip), CSS 2.88 kB (1.17 kB gzip).
+- One measured live run (text + PDF, gemini-3.5-flash-lite): extract 5.7 s, verify 2.1 s.
 - Analyse latency: shown in the UI after every run (extract and verify time, and the model used). No
   median over repeated live runs has been recorded yet.
 
