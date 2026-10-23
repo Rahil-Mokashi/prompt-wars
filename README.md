@@ -78,12 +78,15 @@ Every action shows `Verified` or `Needs human check`, with reasons and sources.
   asserts zero violations.
 - **Efficiency:** one extraction call; verification only on first-aid actions; images downscaled to 1600px
   JPEG 0.8; identical text input is cached; the mock code is not in the production bundle.
-- **Testing:** 79 unit tests, 99.57% line coverage (97.71% statements, 93.29% branches) on `src/domain`,
-  `src/actions`, `src/utils/validate.ts` and `src/ai` (`schemas`, `model-fallback`, `extract`, `verify`);
-  threshold 80% lines, enforced in `vite.config.ts`. Gemini is mocked, so there is no network in unit tests.
-  CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests with coverage and build on every push to `main`.
-  The Playwright + axe test is run locally (`npm run e2e`), not in CI.
-  No triage-accuracy evaluation has been run, so no accuracy figure is claimed.
+- **Testing:** 93 unit tests, 99.13% line coverage (97.70% statements, 92.46% branches) across all of
+  `src/` except the browser-only entry points (`main.ts`, `firebase.ts`, `utils/image.ts`, `ai/mock.ts`),
+  which the Playwright test exercises. The threshold is 80% lines, enforced in `vite.config.ts`. Gemini is
+  mocked, so there is no network in unit tests. No triage-accuracy evaluation has been run, so no accuracy
+  figure is claimed.
+- **CI:** `.github/workflows/ci.yml` runs on every push to `main`: lint, typecheck, unit tests with
+  coverage and build in one job, and the Playwright + axe test in a second job.
+- **Code quality:** strict type-aware ESLint (`typescript-eslint` strict + stylistic), `complexity` at 10,
+  `max-lines-per-function` at 50, no `any`, Prettier with LF line endings.
 
 ## Performance
 
@@ -106,6 +109,24 @@ Measured, not claimed:
 - **AI coding tools:** built with Claude Code.
 - Original code throughout; guidance rules are written by us and link to official organisation sites.
 
+## Project structure
+
+```
+src/
+  main.ts              wires the page to the pipeline (DOM lookups, events, cache)
+  config.ts            every constant: models, limits, timeouts, emergency numbers
+  firebase.ts          Firebase app, App Check, AI Logic client
+  ai/                  extract.ts, verify.ts, gemini.ts (model factory), model-fallback.ts,
+                       prompts.ts, schemas.ts (schemas + validators), mock.ts (dev only)
+  domain/              pure rules: types, verifier, risk-flags, guidance, packs/
+  actions/             pure builders: action cards, ER summary, tel/Maps/SMS links
+  ui/                  render.ts (DOM, textContent only), a11y.ts, i18n.ts (UI strings)
+  utils/               validate.ts, image.ts
+tests/unit/            Vitest, Gemini mocked
+tests/e2e/             Playwright + axe
+docs/lighthouse.md     measured Lighthouse results
+```
+
 ## Setup, test, deploy
 
 ```bash
@@ -113,13 +134,19 @@ npm install
 cp .env.example .env.local        # fill in the public Firebase web config and reCAPTCHA site key
 echo VITE_USE_MOCK=true > .env.development.local   # optional: canned responses, dev server only
 npm run dev
-npm run lint && npm run typecheck && npm test && npm run build
-npm run e2e                        # Playwright + axe, uses mock mode
-firebase deploy --only hosting
 ```
 
-On localhost, App Check uses a debug token printed in the browser console; register it in the Firebase
-console. It is never committed.
+| Script              | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `npm run dev`       | Vite dev server                                |
+| `npm run lint`      | ESLint (type-aware, strict) and Prettier check |
+| `npm run typecheck` | `tsc --noEmit`                                 |
+| `npm test`          | Vitest with coverage (80% lines threshold)     |
+| `npm run build`     | Typecheck and production build to `dist/`      |
+| `npm run e2e`       | Playwright + axe, uses mock mode               |
+
+Deploy with `firebase deploy --only hosting`. On localhost, App Check uses a debug token printed in the
+browser console; register it in the Firebase console. It is never committed.
 
 ## Limitations and disclaimer
 
