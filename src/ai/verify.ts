@@ -1,5 +1,4 @@
-import { getGenerativeModel, type SchemaRequest } from 'firebase/ai';
-import { MODEL_CHAIN, REQUEST_TIMEOUT_MS } from '../config';
+import { MODEL_CHAIN } from '../config';
 import { applyVerdicts, runRules } from '../domain/verifier';
 import type {
   Extraction,
@@ -9,7 +8,7 @@ import type {
   VerifiedAction,
   VerifiedResult,
 } from '../domain/types';
-import { getAiClient } from '../firebase';
+import { createModel } from './gemini';
 import { runWithFallback } from './model-fallback';
 import { guidancePrompt } from './prompts';
 import { parseVerdicts, VERDICT_SCHEMA } from './schemas';
@@ -34,11 +33,7 @@ export function resetGroundingState(): void {
 async function tryGrounding(actions: VerifiedAction[]): Promise<CheckOutcome | null> {
   if (groundingState === 'unavailable') return null;
   try {
-    const model = getGenerativeModel(
-      getAiClient(),
-      { model: MODEL_CHAIN[0] ?? '', tools: [{ googleSearch: {} }] },
-      { timeout: REQUEST_TIMEOUT_MS },
-    );
+    const model = createModel({ model: MODEL_CHAIN[0] ?? '', tools: [{ googleSearch: {} }] });
     const prompt = `${guidancePrompt(actions)}\n\nUse Google Search to confirm. Reply with JSON only: {"verdicts":[{"priority":1,"verdict":"supported","ruleId":null}]}`;
     const result = await model.generateContent(prompt);
     const verdicts = parseVerdicts(result.response.text());
@@ -63,17 +58,13 @@ async function guidanceCheck(actions: VerifiedAction[]): Promise<GuidanceVerdict
   }
   try {
     const { value } = await runWithFallback(MODEL_CHAIN, async (name) => {
-      const model = getGenerativeModel(
-        getAiClient(),
-        {
-          model: name,
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: VERDICT_SCHEMA as unknown as SchemaRequest,
-          },
+      const model = createModel({
+        model: name,
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: VERDICT_SCHEMA,
         },
-        { timeout: REQUEST_TIMEOUT_MS },
-      );
+      });
       const result = await model.generateContent(guidancePrompt(actions));
       return result.response.text();
     });

@@ -1,3 +1,4 @@
+import type { SchemaRequest } from 'firebase/ai';
 import {
   ACTION_TYPES,
   PACK_IDS,
@@ -12,7 +13,7 @@ const STR = { type: 'string' } as const;
 const STR_LIST = { type: 'array', items: STR } as const;
 
 /** Response schema sent to Gemini for the single extraction call. */
-export const EXTRACTION_SCHEMA = {
+export const EXTRACTION_SCHEMA: SchemaRequest = {
   type: 'object',
   properties: {
     pack: { type: 'string', enum: [...PACK_IDS] },
@@ -58,10 +59,10 @@ export const EXTRACTION_SCHEMA = {
     'missing_info',
     'actions',
   ],
-} as const;
+};
 
 /** Response schema for the guidance check. */
-export const VERDICT_SCHEMA = {
+export const VERDICT_SCHEMA: SchemaRequest = {
   type: 'object',
   properties: {
     verdicts: {
@@ -78,7 +79,7 @@ export const VERDICT_SCHEMA = {
     },
   },
   required: ['verdicts'],
-} as const;
+};
 
 /** Shown when the model output cannot be trusted: never raw output, always Call 112. */
 export const SAFE_FALLBACK: Extraction = {

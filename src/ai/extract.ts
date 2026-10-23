@@ -1,7 +1,7 @@
-import { getGenerativeModel, type Part, type SchemaRequest } from 'firebase/ai';
-import { MODEL_CHAIN, REQUEST_TIMEOUT_MS } from '../config';
+import type { Part } from 'firebase/ai';
+import { MODEL_CHAIN } from '../config';
 import type { Extraction } from '../domain/types';
-import { getAiClient } from '../firebase';
+import { createModel } from './gemini';
 import { runWithFallback } from './model-fallback';
 import { extractionInstruction, wrapUserContent } from './prompts';
 import { EXTRACTION_SCHEMA, parseExtraction, SAFE_FALLBACK } from './schemas';
@@ -52,18 +52,14 @@ export async function extract(input: ExtractInput): Promise<ExtractOutput> {
   const { value, model } = await runWithFallback(
     MODEL_CHAIN,
     async (name) => {
-      const generative = getGenerativeModel(
-        getAiClient(),
-        {
-          model: name,
-          systemInstruction: extractionInstruction(),
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: EXTRACTION_SCHEMA as unknown as SchemaRequest,
-          },
+      const generative = createModel({
+        model: name,
+        systemInstruction: extractionInstruction(),
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: EXTRACTION_SCHEMA,
         },
-        { timeout: REQUEST_TIMEOUT_MS },
-      );
+      });
       const result = await generative.generateContent(buildParts(input));
       return result.response.text();
     },
