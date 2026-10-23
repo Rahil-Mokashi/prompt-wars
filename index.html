@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Sankat Setu turns messy emergency input into verified, prioritised actions you can tap."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Sankat Setu: emergency bridge for India</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <h1>Sankat Setu</h1>
+      <p class="tagline">Tell us what is happening. Get verified steps you can tap.</p>
+      <a class="btn btn-emergency" href="tel:112">Call 112 now</a>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <form id="input-form" novalidate>
+        <div class="field">
+          <label for="text-input">Describe the situation, or paste a prescription or alert</label>
+          <textarea id="text-input" rows="5" maxlength="5000" autocomplete="off"></textarea>
+        </div>
+        <div class="field">
+          <label for="file-input">Add photos, PDFs or audio (up to 5 files, 10 MB each)</label>
+          <input
+            id="file-input"
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp,application/pdf,audio/webm,audio/ogg,audio/mpeg,audio/wav"
+          />
+        </div>
+        <div class="button-row">
+          <button id="analyse-btn" class="btn btn-primary" type="submit">Analyse</button>
+          <button id="sample-btn" class="btn btn-secondary" type="button">Try a sample</button>
+        </div>
+      </form>
+
+      <div id="status" class="visually-hidden" role="status" aria-live="polite"></div>
+      <div id="error" role="alert"></div>
+      <section id="results" aria-label="Results" tabindex="-1"></section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Sankat Setu gives first steps only. It does not diagnose and is not a substitute for a
+        doctor or emergency services. In an emergency always call 112.
+      </p>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
