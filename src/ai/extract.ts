@@ -9,17 +9,20 @@ import { EXTRACTION_SCHEMA, parseExtraction, SAFE_FALLBACK } from './schemas';
 /** Dev-only mock mode: constant-folded to false in production so the mock is tree-shaken out. */
 const USE_MOCK = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true';
 
+/** A file prepared for upload. */
 export interface InputFile {
   mimeType: string;
   /** Base64 file contents without a data: prefix. */
   data: string;
 }
 
+/** Validated user input for the Extract call. */
 export interface ExtractInput {
   text: string;
   files: InputFile[];
 }
 
+/** Result of the Extract call. */
 export interface ExtractOutput {
   extraction: Extraction;
   model: string;

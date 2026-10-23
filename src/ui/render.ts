@@ -3,6 +3,7 @@ import type { ActionCard } from '../actions/build-actions';
 import type { VerifiedResult } from '../domain/types';
 import { STRINGS } from './i18n';
 
+/** Model and per-call latency shown under the result. */
 export interface ResultMeta {
   model: string;
   extractMs: number;
@@ -41,6 +42,7 @@ function sourceLinks(card: ActionCard): HTMLElement | null {
   return wrap;
 }
 
+/** Callbacks the card buttons invoke. */
 export interface CardHandlers {
   copy: (text: string) => void;
   speak: (text: string) => void;

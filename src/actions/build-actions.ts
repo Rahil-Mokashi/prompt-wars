@@ -3,8 +3,10 @@ import type { Source, VerifiedResult, VerifyStatus } from '../domain/types';
 import { buildErSummary } from './er-summary';
 import { hospitalMapsLink, telLink } from './links';
 
+/** How a card behaves: phone call, external link, copy-to-clipboard or information only. */
 export type CardKind = 'call' | 'link' | 'copy' | 'info';
 
+/** A tappable card shown to the user. */
 export interface ActionCard {
   kind: CardKind;
   title: string;

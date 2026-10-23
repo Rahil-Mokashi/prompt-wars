@@ -2,6 +2,7 @@ import { RETRY_DELAY_MS } from '../config';
 
 /** Raised when every model in the chain failed or was rate limited. */
 export class AllModelsFailedError extends Error {
+  /** Creates the error with the friendly "service busy" message. */
   constructor() {
     super('Service busy, try again in a minute.');
     this.name = 'AllModelsFailedError';
@@ -10,12 +11,17 @@ export class AllModelsFailedError extends Error {
 
 /** Raised for errors that retrying or switching model will not fix. */
 export class AiRequestError extends Error {
+  /**
+   * @param message - user-facing message
+   * @param options - standard error options, used to keep the original cause
+   */
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'AiRequestError';
   }
 }
 
+/** Hooks for runWithFallback: a fake sleep for tests and a callback for the answering model. */
 export interface FallbackOptions {
   sleep?: (ms: number) => Promise<void>;
   /** Called with the model that answered (used for the dev-only log and UI). */

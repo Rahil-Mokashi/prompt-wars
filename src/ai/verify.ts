@@ -47,6 +47,7 @@ async function tryGrounding(actions: VerifiedAction[]): Promise<CheckOutcome | n
   } catch {
     // 429/401/403 (blocked on the free tier) or any other failure: one attempt per session.
     groundingState = 'unavailable';
+    if (import.meta.env.DEV) console.info('[verify] grounding unavailable, using guidance check');
     return null;
   }
 }
@@ -70,6 +71,8 @@ async function guidanceCheck(actions: VerifiedAction[]): Promise<GuidanceVerdict
     });
     return parseVerdicts(value);
   } catch {
+    if (import.meta.env.DEV)
+      console.info('[verify] guidance check failed, flagging for human check');
     return null;
   }
 }

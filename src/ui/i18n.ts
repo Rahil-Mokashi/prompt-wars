@@ -23,6 +23,7 @@ export const STRINGS = {
   stillUnknown: 'Still unknown',
 } as const;
 
+/** Text filled in by the "Try a sample" button. */
 export const SAMPLE_TEXT =
   'My father, 72, slipped on the stairs and hit his head on the stone step. He is awake but ' +
   'dizzy and there is a small cut on his forehead that is bleeding. He takes warfarin every ' +
