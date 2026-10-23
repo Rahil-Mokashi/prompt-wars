@@ -16,6 +16,17 @@
       <h1>Sankat Setu</h1>
       <p class="tagline">Tell us what is happening. Get verified steps you can tap.</p>
       <a class="btn btn-emergency" href="tel:112">Call 112 now</a>
+      <section class="silent-help" aria-labelledby="silent-title">
+        <h2 id="silent-title">Can't speak on a call?</h2>
+        <p>Send a text message to <strong>112</strong> instead.</p>
+        <div class="button-row">
+          <a id="sms-link" class="btn btn-primary" href="sms:112">Text 112</a>
+          <button id="trust-btn" class="btn btn-secondary" type="button">
+            Alert someone you trust
+          </button>
+        </div>
+        <p id="trust-status" class="meta" role="status"></p>
+      </section>
     </header>
 
     <main id="main" tabindex="-1">

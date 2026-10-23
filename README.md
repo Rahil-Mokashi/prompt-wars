@@ -74,11 +74,11 @@ Every action shows `Verified` or `Needs human check`, with reasons and sources.
 ## Security, accessibility, efficiency, testing
 
 - **Security:** see `SECURITY.md`. CSP and four other headers are set once each in `firebase.json`.
-- **Accessibility:** Lighthouse accessibility 100; the Playwright test runs axe (WCAG 2.2 AA tags) and
+- **Accessibility:** ERSS 112 accepts SMS, so users who can't speak can text it (source: [Kerala Police ERSS page](https://wayanad.keralapolice.gov.in/page/erss)); the always-visible "Can't speak on a call?" section offers a prefilled "Text 112" link and an "Alert someone you trust" share button. Lighthouse accessibility 100; the Playwright test runs axe (WCAG 2.2 AA tags) and
   asserts zero violations.
 - **Efficiency:** one extraction call; verification only on first-aid actions; images downscaled to 1600px
   JPEG 0.8; identical text input is cached; the mock code is not in the production bundle.
-- **Testing:** 71 unit tests, 99.55% line coverage (97.62% statements, 93.08% branches) on `src/domain`,
+- **Testing:** 79 unit tests, 99.57% line coverage (97.71% statements, 93.29% branches) on `src/domain`,
   `src/actions`, `src/utils/validate.ts` and `src/ai` (`schemas`, `model-fallback`, `extract`, `verify`);
   threshold 80% lines, enforced in `vite.config.ts`. Gemini is mocked, so there is no network in unit tests.
   CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests with coverage and build on every push to `main`.

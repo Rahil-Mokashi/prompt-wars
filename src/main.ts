@@ -1,9 +1,10 @@
 import './style.css';
 import { buildActionCards } from './actions/build-actions';
+import { buildSmsMessage, smsLink } from './actions/links';
 import { extract } from './ai/extract';
 import { AllModelsFailedError } from './ai/model-fallback';
 import { verify } from './ai/verify';
-import { CACHE_MAX_ENTRIES } from './config';
+import { CACHE_MAX_ENTRIES, EMERGENCY_NUMBER, SMS_DEFAULT_MESSAGE } from './config';
 import type { VerifiedResult } from './domain/types';
 import { announce, focusResults } from './ui/a11y';
 import { SAMPLE_TEXT, STRINGS } from './ui/i18n';
@@ -25,6 +26,9 @@ const sampleBtn = byId<HTMLButtonElement>('sample-btn');
 const statusRegion = byId('status');
 const errorRegion = byId('error');
 const results = byId('results');
+const smsAnchor = byId<HTMLAnchorElement>('sms-link');
+const trustBtn = byId<HTMLButtonElement>('trust-btn');
+const trustStatus = byId('trust-status');
 
 const cache = new Map<string, { result: VerifiedResult; model: string }>();
 let busy = false;
@@ -62,8 +66,35 @@ function remember(key: string, value: { result: VerifiedResult; model: string })
   cache.set(key, value);
 }
 
+let alertMessage = SMS_DEFAULT_MESSAGE;
+
+function setAlertMessage(message: string): void {
+  alertMessage = message;
+  smsAnchor.href = smsLink(EMERGENCY_NUMBER, message);
+}
+
+setAlertMessage(SMS_DEFAULT_MESSAGE);
+
+trustBtn.addEventListener('click', () => {
+  const copyInstead = (): void => {
+    navigator.clipboard
+      .writeText(alertMessage)
+      .then(() => {
+        trustStatus.textContent = 'Copied. Paste it in a message to someone you trust.';
+      })
+      .catch(() => {
+        trustStatus.textContent = STRINGS.copyFailed;
+      });
+  };
+  if (typeof navigator.share !== 'function') return copyInstead();
+  navigator.share({ text: alertMessage }).catch((error: unknown) => {
+    if (!(error instanceof DOMException && error.name === 'AbortError')) copyInstead();
+  });
+});
+
 function show(result: VerifiedResult, model: string, extractMs: number, verifyMs: number): void {
   clearBusy(results);
+  setAlertMessage(buildSmsMessage(result.extraction));
   renderResult(
     results,
     result,

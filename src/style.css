@@ -262,3 +262,23 @@ input[type='file'] {
   color: var(--muted);
   font-size: 0.95rem;
 }
+
+.silent-help {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--card);
+  border-radius: 8px;
+}
+
+.silent-help h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+}
+
+.silent-help p {
+  margin: 0.25rem 0 0.75rem;
+}
+
+#trust-status:empty {
+  display: none;
+}

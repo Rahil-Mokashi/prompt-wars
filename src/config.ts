@@ -34,3 +34,6 @@ export const EMERGENCY_NUMBER = '112';
 export const AMBULANCE_NUMBER = '108';
 
 export const MAPS_SEARCH_URL = 'https://www.google.com/maps/search/?api=1&query=';
+
+export const SMS_MAX_CHARS = 300;
+export const SMS_DEFAULT_MESSAGE = 'Emergency. I cannot speak on a call. Please send help.';
