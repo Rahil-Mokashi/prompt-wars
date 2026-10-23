@@ -1,4 +1,10 @@
-import { ALLOWED_MIME_TYPES, MAX_FILE_BYTES, MAX_FILES, MAX_TEXT_CHARS } from '../config';
+import {
+  ALLOWED_MIME_TYPES,
+  BYTES_PER_MB,
+  MAX_FILE_BYTES,
+  MAX_FILES,
+  MAX_TEXT_CHARS,
+} from '../config';
 
 export interface FileMeta {
   name: string;
@@ -39,7 +45,7 @@ export function validateInput(input: InputToValidate): ValidationResult {
     if (file.size > MAX_FILE_BYTES) {
       return {
         ok: false,
-        error: `"${file.name}" is too large. Each file must be under ${MAX_FILE_BYTES / 1024 / 1024} MB.`,
+        error: `"${file.name}" is too large. Each file must be under ${MAX_FILE_BYTES / BYTES_PER_MB} MB.`,
       };
     }
   }

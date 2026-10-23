@@ -1,3 +1,4 @@
+import { AMBULANCE_NUMBER, EMERGENCY_NUMBER } from '../config';
 import { GUIDANCE } from '../domain/guidance';
 import { getPack } from '../domain/packs/registry';
 import type { PackId, VerifiedAction } from '../domain/types';
@@ -11,7 +12,7 @@ const SAFETY_RULES =
   'Never diagnose. Never suggest stopping or changing prescribed medicine. Never state drug ' +
   'interactions or medical conclusions as facts: record medications, conditions and what ' +
   'happened as key_facts. Always give immediate safety actions first. For any serious ' +
-  'situation include an action of type "call" for 112 or 108. Keep titles short and ' +
+  `situation include an action of type "call" for ${EMERGENCY_NUMBER} or ${AMBULANCE_NUMBER}. Keep titles short and ` +
   'instructions in plain, simple language. If information is missing, list it in missing_info.';
 
 /**

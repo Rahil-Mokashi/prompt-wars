@@ -18,6 +18,9 @@ export const STRINGS = {
   open: 'Open',
   call: 'Call',
   sources: 'Sources',
+  situation: 'Situation',
+  whatToDoNow: 'What to do now',
+  stillUnknown: 'Still unknown',
 } as const;
 
 export const SAMPLE_TEXT =

@@ -3,7 +3,6 @@ import { medicalPack } from './medical';
 
 export interface Pack {
   id: PackId;
-  label: string;
   /** Domain-specific line added to the extraction instructions. */
   promptHint: string;
 }

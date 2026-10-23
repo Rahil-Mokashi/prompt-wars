@@ -6,7 +6,6 @@ import { hospitalMapsLink, telLink } from './links';
 export type CardKind = 'call' | 'link' | 'copy' | 'info';
 
 export interface ActionCard {
-  id: string;
   kind: CardKind;
   title: string;
   detail: string;
@@ -21,7 +20,6 @@ export interface ActionCard {
 
 function callCard(number: string, title: string, detail: string): ActionCard {
   return {
-    id: `call-${number}`,
     kind: 'call',
     title,
     detail,
@@ -54,10 +52,9 @@ export function buildActionCards(result: VerifiedResult): ActionCard[] {
     );
   }
 
-  actions.forEach((action, index) => {
+  actions.forEach((action) => {
     if (action.type === 'call') return;
     const base = {
-      id: `action-${index}`,
       title: action.title,
       detail: action.instruction,
       status: action.status,
@@ -76,7 +73,6 @@ export function buildActionCards(result: VerifiedResult): ActionCard[] {
 
   if (!actions.some((a) => a.type === 'share')) {
     cards.push({
-      id: 'share-er-summary',
       kind: 'copy',
       title: 'Copy summary for the hospital',
       detail: 'Copies a short handoff you can paste or show to emergency staff.',

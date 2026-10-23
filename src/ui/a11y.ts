@@ -1,3 +1,5 @@
+import { ANNOUNCE_DELAY_MS } from '../config';
+
 /**
  * Announces a message to screen readers through the polite live region.
  * @param region - the aria-live element
@@ -8,7 +10,7 @@ export function announce(region: HTMLElement, message: string): void {
   // A second write after the clear makes repeated identical messages announce again.
   window.setTimeout(() => {
     region.textContent = message;
-  }, 50);
+  }, ANNOUNCE_DELAY_MS);
 }
 
 /**
@@ -16,5 +18,5 @@ export function announce(region: HTMLElement, message: string): void {
  * @param element - a container with tabindex="-1"
  */
 export function focusResults(element: HTMLElement): void {
-  element.focus({ preventScroll: false });
+  element.focus();
 }

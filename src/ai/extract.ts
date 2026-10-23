@@ -1,5 +1,5 @@
 import type { Part } from 'firebase/ai';
-import { MODEL_CHAIN } from '../config';
+import { MOCK_LATENCY_MS, MODEL_CHAIN } from '../config';
 import type { Extraction } from '../domain/types';
 import { createModel } from './gemini';
 import { runWithFallback } from './model-fallback';
@@ -45,7 +45,7 @@ function buildParts(input: ExtractInput): Part[] {
 export async function extract(input: ExtractInput): Promise<ExtractOutput> {
   if (USE_MOCK) {
     const { MOCK_EXTRACTION } = await import('./mock');
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    await new Promise((resolve) => setTimeout(resolve, MOCK_LATENCY_MS));
     return { extraction: MOCK_EXTRACTION, model: 'mock', usedSafeFallback: false };
   }
 

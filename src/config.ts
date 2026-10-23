@@ -37,3 +37,14 @@ export const MAPS_SEARCH_URL = 'https://www.google.com/maps/search/?api=1&query=
 
 export const SMS_MAX_CHARS = 300;
 export const SMS_DEFAULT_MESSAGE = 'Emergency. I cannot speak on a call. Please send help.';
+
+/** Simulated model latency in dev mock mode. */
+export const MOCK_LATENCY_MS = 700;
+/** Number of placeholder blocks in the loading skeleton. */
+export const SKELETON_BLOCKS = 3;
+/** Delay that lets screen readers re-announce an identical live-region message. */
+export const ANNOUNCE_DELAY_MS = 50;
+export const BYTES_PER_MB = 1024 * 1024;
+export const MS_PER_SECOND = 1000;
+/** Priority of the Call 112 action the rules add; sorts before model actions. */
+export const CALL_ACTION_PRIORITY = 0;

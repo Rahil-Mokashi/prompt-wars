@@ -52,7 +52,8 @@ export interface RiskFlag {
   reason: string;
 }
 
-export type GuidanceVerdictKind = 'supported' | 'not_supported' | 'not_covered';
+export const VERDICT_KINDS = ['supported', 'not_supported', 'not_covered'] as const;
+export type GuidanceVerdictKind = (typeof VERDICT_KINDS)[number];
 
 export interface GuidanceVerdict {
   priority: number;

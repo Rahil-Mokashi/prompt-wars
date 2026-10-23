@@ -1,4 +1,9 @@
-import { EMERGENCY_NUMBER, LOW_CONFIDENCE_THRESHOLD } from '../config';
+import {
+  AMBULANCE_NUMBER,
+  CALL_ACTION_PRIORITY,
+  EMERGENCY_NUMBER,
+  LOW_CONFIDENCE_THRESHOLD,
+} from '../config';
 import { findRule } from './guidance';
 import { applyRiskFlags } from './risk-flags';
 import type {
@@ -23,10 +28,10 @@ function needsCall(severity: Severity): boolean {
 
 function callAction(): Action {
   return {
-    priority: 0,
+    priority: CALL_ACTION_PRIORITY,
     type: 'call',
     title: `Call ${EMERGENCY_NUMBER} now`,
-    instruction: `Call ${EMERGENCY_NUMBER} (or 108 for an ambulance) and say where you are.`,
+    instruction: `Call ${EMERGENCY_NUMBER} (or ${AMBULANCE_NUMBER} for an ambulance) and say where you are.`,
   };
 }
 

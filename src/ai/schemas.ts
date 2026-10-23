@@ -1,6 +1,8 @@
 import type { SchemaRequest } from 'firebase/ai';
+import { AMBULANCE_NUMBER, EMERGENCY_NUMBER } from '../config';
 import {
   ACTION_TYPES,
+  VERDICT_KINDS,
   PACK_IDS,
   SEVERITIES,
   type Action,
@@ -71,7 +73,7 @@ export const VERDICT_SCHEMA: SchemaRequest = {
         type: 'object',
         properties: {
           priority: { type: 'integer' },
-          verdict: { type: 'string', enum: ['supported', 'not_supported', 'not_covered'] },
+          verdict: { type: 'string', enum: [...VERDICT_KINDS] },
           ruleId: { type: 'string', nullable: true },
         },
         required: ['priority', 'verdict', 'ruleId'],
@@ -95,8 +97,8 @@ export const SAFE_FALLBACK: Extraction = {
     {
       priority: 1,
       type: 'call',
-      title: 'Call 112 now',
-      instruction: 'If this is an emergency, call 112 (or 108 for an ambulance) right away.',
+      title: `Call ${EMERGENCY_NUMBER} now`,
+      instruction: `If this is an emergency, call ${EMERGENCY_NUMBER} (or ${AMBULANCE_NUMBER} for an ambulance) right away.`,
     },
   ],
 };
@@ -223,7 +225,7 @@ export function parseVerdicts(text: string): GuidanceVerdict[] | null {
     const { priority, verdict, ruleId } = item;
     if (
       typeof priority !== 'number' ||
-      !oneOf(['supported', 'not_supported', 'not_covered'] as const, verdict) ||
+      !oneOf(VERDICT_KINDS, verdict) ||
       (ruleId !== null && typeof ruleId !== 'string')
     ) {
       return null;

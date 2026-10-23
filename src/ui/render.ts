@@ -1,3 +1,4 @@
+import { MS_PER_SECOND, SKELETON_BLOCKS } from '../config';
 import type { ActionCard } from '../actions/build-actions';
 import type { VerifiedResult } from '../domain/types';
 import { STRINGS } from './i18n';
@@ -145,7 +146,7 @@ export function renderResult(
 ): void {
   const { extraction } = result;
   const summary = el('div', undefined, 'summary');
-  const heading = el('h2', 'Situation');
+  const heading = el('h2', STRINGS.situation);
   const badge = el(
     'span',
     `${extraction.severity.toUpperCase()} severity`,
@@ -154,10 +155,12 @@ export function renderResult(
   summary.append(heading, badge, el('p', extraction.situation_summary));
   for (const flag of result.flags) summary.append(el('p', `⚠ ${flag.reason}`, 'status'));
   if (extraction.missing_info.length > 0) {
-    summary.append(el('p', `Still unknown: ${extraction.missing_info.join('; ')}`, 'meta'));
+    summary.append(
+      el('p', `${STRINGS.stillUnknown}: ${extraction.missing_info.join('; ')}`, 'meta'),
+    );
   }
   const method = result.method === 'web' ? STRINGS.webVerified : STRINGS.guidanceChecked;
-  const seconds = (ms: number): string => (ms / 1000).toFixed(1);
+  const seconds = (ms: number): string => (ms / MS_PER_SECOND).toFixed(1);
   summary.append(
     el(
       'p',
@@ -168,7 +171,7 @@ export function renderResult(
 
   const list = el('ol', undefined, 'cards');
   for (const card of cards) list.append(renderCard(card, handlers));
-  container.replaceChildren(summary, el('h2', 'What to do now'), list);
+  container.replaceChildren(summary, el('h2', STRINGS.whatToDoNow), list);
 }
 
 /**
@@ -176,7 +179,7 @@ export function renderResult(
  * @param container - results section
  */
 export function renderSkeleton(container: HTMLElement): void {
-  const blocks = [0, 1, 2].map(() => el('div', undefined, 'skeleton'));
+  const blocks = Array.from({ length: SKELETON_BLOCKS }, () => el('div', undefined, 'skeleton'));
   container.replaceChildren(...blocks);
   container.setAttribute('aria-busy', 'true');
 }
