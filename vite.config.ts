@@ -12,6 +12,8 @@ export default defineConfig({
         'src/utils/validate.ts',
         'src/ai/schemas.ts',
         'src/ai/model-fallback.ts',
+        'src/ai/extract.ts',
+        'src/ai/verify.ts',
       ],
       thresholds: { lines: 80 },
     },
