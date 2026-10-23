@@ -8,7 +8,7 @@
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.gstatic.com; media-src 'self' blob:; connect-src 'self' https://firebasevertexai.googleapis.com https://content-firebaseappcheck.googleapis.com https://firebaseinstallations.googleapis.com https://www.google.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com; frame-src https://www.google.com/recaptcha/; object-src 'none'; base-uri 'self'; form-action 'self'"
+            "value": "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.gstatic.com; media-src 'self' blob:; connect-src 'self' https://firebasevertexai.googleapis.com https://content-firebaseappcheck.googleapis.com https://firebaseinstallations.googleapis.com https://www.google.com; frame-src https://www.google.com/recaptcha/; object-src 'none'; base-uri 'self'; form-action 'self'"
           },
           { "key": "Permissions-Policy", "value": "microphone=(self)" },
           { "key": "X-Content-Type-Options", "value": "nosniff" },
