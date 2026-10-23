@@ -33,8 +33,12 @@ const status = (code: number) =>
 const groundingCalls = () =>
   getGenerativeModel.mock.calls.filter(([, params]) => params.tools !== undefined).length;
 
-async function load(mock = false) {
+async function load(mock = false, grounding = true) {
   vi.resetModules();
+  vi.doMock('../../src/config', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('../../src/config')>()),
+    GROUNDING_ENABLED: grounding,
+  }));
   vi.stubEnv('VITE_USE_MOCK', mock ? 'true' : 'false');
   return import('../../src/ai/verify');
 }
@@ -117,5 +121,16 @@ describe('verify', () => {
     resetGroundingState();
     await verify(makeExtraction());
     expect(groundingCalls()).toBe(2);
+  });
+});
+
+describe('verify with grounding disabled (the default)', () => {
+  it('skips the grounding call entirely and uses the guidance check', async () => {
+    handler = () => reply(verdictsJson);
+    const { verify } = await load(false, false);
+    const result = await verify(makeExtraction());
+    expect(groundingCalls()).toBe(0);
+    expect(result.method).toBe('guidance');
+    expect(result.actions[0]?.status).toBe('verified');
   });
 });

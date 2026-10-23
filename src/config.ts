@@ -68,4 +68,10 @@ export const CALL_ACTION_PRIORITY = 0;
 /** Language tag for read-aloud; the browser picks a matching voice when one is installed. */
 export const SPEECH_LANG = 'en-IN';
 /** Delay between cancelling speech and starting a new utterance; Chrome drops an immediate speak(). */
-export const SPEECH_START_DELAY_MS = 100;
+export const SPEECH_START_DELAY_MS = 50;
+
+/**
+ * Whether to try Google Search grounding before the guidance check. Off because grounding is
+ * blocked on the free tier (HTTP 429); the code path and its tests are kept.
+ */
+export const GROUNDING_ENABLED = false as boolean;

@@ -1,4 +1,4 @@
-import { MODEL_CHAIN } from '../config';
+import { GROUNDING_ENABLED, MODEL_CHAIN } from '../config';
 import { applyVerdicts, runRules } from '../domain/verifier';
 import type {
   Extraction,
@@ -96,7 +96,7 @@ export async function verify(extraction: Extraction): Promise<VerifiedResult> {
     };
   }
 
-  const grounded = USE_MOCK ? null : await tryGrounding(firstAid);
+  const grounded = USE_MOCK || !GROUNDING_ENABLED ? null : await tryGrounding(firstAid);
   const outcome: CheckOutcome = grounded ?? {
     verdicts: await guidanceCheck(firstAid),
     method: 'guidance',
