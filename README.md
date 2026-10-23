@@ -1,5 +1,7 @@
 # Sankat Setu
 
+[![CI](https://github.com/Rahil-Mokashi/prompt-wars/actions/workflows/ci.yml/badge.svg)](https://github.com/Rahil-Mokashi/prompt-wars/actions/workflows/ci.yml)
+
 An emergency bridge for India: messy input (text, photos, PDFs, audio) goes in, verified and prioritised
 actions you can tap come out. **Live:** https://promptwars-rahil.web.app
 
@@ -76,8 +78,11 @@ Every action shows `Verified` or `Needs human check`, with reasons and sources.
   asserts zero violations.
 - **Efficiency:** one extraction call; verification only on first-aid actions; images downscaled to 1600px
   JPEG 0.8; identical text input is cached; the mock code is not in the production bundle.
-- **Testing:** 55 unit tests, 97.7% line coverage on `src/domain`, `src/actions`, `src/utils/validate.ts`,
-  `src/ai/schemas.ts` and `src/ai/model-fallback.ts` (threshold 80%). Gemini is mocked; no network.
+- **Testing:** 71 unit tests, 99.55% line coverage (97.62% statements, 93.08% branches) on `src/domain`,
+  `src/actions`, `src/utils/validate.ts` and `src/ai` (`schemas`, `model-fallback`, `extract`, `verify`);
+  threshold 80% lines, enforced in `vite.config.ts`. Gemini is mocked, so there is no network in unit tests.
+  CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests with coverage and build on every push to `main`.
+  The Playwright + axe test is run locally (`npm run e2e`), not in CI.
   No triage-accuracy evaluation has been run, so no accuracy figure is claimed.
 
 ## Performance
